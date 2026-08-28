@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ani-Aral: Offline Ag-Resilience Engine</title>
+  <style>
+    :root {
+      --primary: #2d6a4f;
+      --secondary: #52b788;
+      --accent: #d8f3dc;
+      --danger: #b7094c;
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #1b4332;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: #212529;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: 26px; }
+    header p { margin: 8px 0 0; font-size: 14px; opacity: 0.9; }
+    .badge {
+      display: inline-block;
+      background: var(--secondary);
+      color: white;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 6px;
+      font-weight: bold;
+    }
+    .content {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .content { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: #fdfdfd;
+      border: 1px solid #e9ecef;
+      padding: 18px;
+      border-radius: 8px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      display: block;
+      margin-top: 12px;
+      color: var(--text);
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 6px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1b4332; }
+    .result-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 6px;
+      background: var(--accent);
+    }
+    .danger-box {
+      background: #ffe3e3;
+      color: var(--danger);
+      font-weight: bold;
+    }
+    .metric {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .plan-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed #ced4da;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🌱 ANI-ARAL Engine</h1>
+    <p>Offline Decentralized Crop-Climate Resilience & Allocation Simulator</p>
+    <div class="badge">100% OFFLINE / ZERO-BANDWIDTH VERIFIED</div>
+  </header>
+
+  <div class="content">
+    <div class="panel">
+      <h2>1. Crop & Disaster Scenario</h2>
+      
+      <label for="cropSelect">Commodity Type</label>
+      <select id="cropSelect">
+        <option value="tomato">Fresh Tomatoes (High Perishability)</option>
+        <option value="cassava">Cassava Root (Medium Perishability)</option>
+        <option value="palay">Unhusked Rice / Palay (Low Perishability)</option>
+        <option value="mango">Carabao Mango (High Spoilage Risk)</option>
+      </select>
+
+      <label for="yieldKg">Harvest Volume (Kilograms)</label>
+      <input type="number" id="yieldKg" value="500" min="10" />
+
+      <label for="marketPrice">Standard Market Price (PHP/kg)</label>
+      <input type="number" id="marketPrice" value="45" min="1" />
+
+      <label for="signalLevel">PAGASA Tropical Cyclone Wind Signal (Simulated)</label>
+      <select id="signalLevel">
+        <option value="0">Signal #0 (Sunny / Normal Days)</option>
+        <option value="1">Signal #1 (Heavy Rains, Minor Road Blocks)</option>
+        <option value="2">Signal #2 (Logistics Cut for 4-5 Days)</option>
+        <option value="3">Signal #3+ (Total Infrastructure Isolation >1 Week)</option>
+      </select>
+
+      <button onclick="calculateResilience()">Run Resilience Engine</button>
+    </div>
+
+    <div class="panel">
+      <h2>2. Mitigation & Bayanihan Strategy</h2>
+      
+      <div id="defaultMsg">Adjust parameters and click <b>Run Resilience Engine</b> to generate simulation.</div>
+
+      <div id="results" style="display:none;">
+        <div class="result-box danger-box" id="riskBanner"></div>
+
+        <div style="margin: 14px 0;">
+          <label>Estimated Value at Risk without Intervention:</label>
+          <div class="metric" id="lossVal">PHP 0.00</div>
+        </div>
+
+        <h3>Optimized Preservation & Community Allocation:</h3>
+        <div class="plan-item">
+          <span>☀️ Local Preservation / Solar Drying:</span>
+          <strong id="dryAlloc">0 kg</strong>
+        </div>
+        <div class="plan-item">
+          <span>🤝 Barangay Barter (Fish/Poultry/Rootcrops):</span>
+          <strong id="barterAlloc">0 kg</strong>
+        </div>
+        <div class="plan-item">
+          <span>🚚 Rapid Pre-Storm Farmgate Sale:</span>
+          <strong id="saleAlloc">0 kg</strong>
+        </div>
+
+        <div class="result-box" style="margin-top: 14px;">
+          <small><b>Algorithmic Recommendation:</b></small>
+          <p id="actionNote" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function calculateResilience() {
+    const crop = document.getElementById('cropSelect').value;
+    const kg = parseFloat(document.getElementById('yieldKg').value) || 0;
+    const price = parseFloat(document.getElementById('marketPrice').value) || 0;
+    const signal = parseInt(document.getElementById('signalLevel').value);
+
+    // Decay rate weight based on crop perishability
+    const decayWeights = { tomato: 0.40, mango: 0.35, cassava: 0.20, palay: 0.05 };
+    const lossMultiplier = Math.min(1.0, decayWeights[crop] * (signal + 1));
+
+    const totalPotentialLossKg = kg * lossMultiplier;
+    const monetaryLoss = totalPotentialLossKg * price;
+
+    // Allocation optimization algorithm
+    let dryPct = 0, barterPct = 0, salePct = 0;
+
+    if (signal === 0) {
+      salePct = 0.80; barterPct = 0.10; dryPct = 0.10;
+    } else if (signal === 1) {
+      salePct = 0.40; barterPct = 0.30; dryPct = 0.30;
+    } else if (signal === 2) {
+      salePct = 0.10; barterPct = 0.45; dryPct = 0.45;
+    } else {
+      salePct = 0.00; barterPct = 0.50; dryPct = 0.50;
+    }
+
+    // Update DOM
+    document.getElementById('defaultMsg').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+
+    document.getElementById('riskBanner').innerText = 
+      `🚨 Spoilage Risk Level: ${(lossMultiplier * 100).toFixed(0)}% within 72 hrs`;
+    document.getElementById('lossVal').innerText = 
+      `₱${monetaryLoss.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+    document.getElementById('dryAlloc').innerText = `${(kg * dryPct).toFixed(1)} kg (${(dryPct * 100)}%)`;
+    document.getElementById('barterAlloc').innerText = `${(kg * barterPct).toFixed(1)} kg (${(barterPct * 100)}%)`;
+    document.getElementById('saleAlloc').innerText = `${(kg * salePct).toFixed(1)} kg (${(salePct * 100)}%)`;
+
+    let notes = "";
+    if (signal >= 2) {
+      notes = "Transport routes will be closed. Immediately shift volume to community salt/solar drying and trade directly with coastal barangay fishers for protein reserves.";
+    } else {
+      notes = "Normal-to-moderate logistics. Sell high-grade produce at standard farmgate, and reserve secondary cuts for cooperative processing.";
+    }
+    document.getElementById('actionNote').innerText = notes;
+  }
+</script>
+</body>
+</html>
